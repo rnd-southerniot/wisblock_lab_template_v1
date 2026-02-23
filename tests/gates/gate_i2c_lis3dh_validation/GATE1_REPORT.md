@@ -1,10 +1,13 @@
 # Gate 1 — I2C LIS3DH Validation Test Report
 
-**Status:** ✅ PASSED
+**Status:** ✅ PASSED (Re-validated under Hardware Profile v2.0)
 **Date:** 2026-02-23
 **Gate ID:** 1
 **Gate Name:** `gate_i2c_lis3dh_validation`
 **Gate Version:** 1.0
+**Hardware Profile:** v2.0 (RAK3312)
+**Build Environment:** `[env:rak3312]`
+**Tag:** `v2.1-gate1-pass-rak3312`
 
 ---
 
@@ -47,12 +50,12 @@
 
 **Result: 6/6 criteria met — GATE 1 PASSED**
 
-## Serial Log (Abbreviated)
+## Serial Log — v2.0 Re-Validation (Abbreviated)
 
 ```
 ========================================
 [SYSTEM] WisBlock Gate Test Runner
-[SYSTEM] Core: RAK3212 (ESP32)
+[SYSTEM] Core: RAK3312 (ESP32-S3)
 [SYSTEM] Gate: 1 - I2C LIS3DH Validation
 ========================================
 
@@ -68,6 +71,16 @@
 [GATE1] PASS
 [GATE1] === GATE COMPLETE ===
 ```
+
+### v2.0 Re-Validation Notes
+
+- Gate logic (`gate_runner.cpp`) was **not modified** — zero changes to test code
+- HAL layer (`hal_i2c.cpp`) was **not modified** — same stop-start I2C sequence
+- I2C pins confirmed matching Hardware Profile v2.0: SDA=GPIO9, SCL=GPIO40
+- No SX1262 pin conflicts: GPIO 9/40 not in reserved set {3,4,5,6,7,8,47,48}
+- Build environment renamed from `[env:rak3212]` to `[env:rak3312]`
+- System banner updated to reflect `RAK3312 (ESP32-S3)`
+- Clean build, flash, and serial capture under `CORE_RAK3312` — all 6/6 PASS
 
 ## Issues Encountered & Resolved
 
@@ -96,7 +109,7 @@
 
 | File | Change |
 |------|--------|
-| `platformio.ini` | Added `[env:rak3212]` for ESP32-S3 |
+| `platformio.ini` | Added `[env:rak3312]` for ESP32-S3 (renamed from `rak3212` in v2.1) |
 | `src/main.cpp` | Created minimal gate entry point |
 | `gate_config.h` | Updated I2C pins to RAK3312 (SDA=9, SCL=40) |
 | `hal_i2c.cpp` | ESP32-S3 Wire compat (stop-start I2C reads) |

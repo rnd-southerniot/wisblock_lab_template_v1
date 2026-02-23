@@ -27,7 +27,7 @@ void setup() {
     Serial.println();
     Serial.println("========================================");
     Serial.println("[SYSTEM] WisBlock Gate Test Runner");
-    Serial.println("[SYSTEM] Core: RAK3212 (ESP32)");
+    Serial.println("[SYSTEM] Core: RAK3312 (ESP32-S3)");
     Serial.println("[SYSTEM] Gate: 1 - I2C LIS3DH Validation");
     Serial.println("========================================");
 

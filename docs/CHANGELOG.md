@@ -1,3 +1,17 @@
+## v2.1-gate1-pass-rak3312 (2026-02-23)
+
+### Gate 1 — I2C LIS3DH Re-Validation under Hardware Profile v2.0: PASSED
+
+- **Re-validated** Gate 1 under Hardware Profile v2.0 (CORE_RAK3312) — 6/6 criteria met
+- **Confirmed** I2C pins match v2.0 profile: SDA=GPIO9, SCL=GPIO40
+- **Confirmed** No SX1262 reserved pin conflicts (GPIO 9/40 not in reserved set)
+- **Renamed** PlatformIO environment from `[env:rak3212]` to `[env:rak3312]`
+- **Updated** `src/main.cpp` banner to `RAK3312 (ESP32-S3)`
+- **Updated** `GATE1_REPORT.md` with v2.0 re-validation results and notes
+- **No changes** to gate logic (`gate_runner.cpp`) or HAL (`hal_i2c.cpp`)
+
+---
+
 ## v2.0-hardware-rak3312 (2026-02-23)
 
 ### Hardware Profile v2.0 — Core Module Change: RAK3212 → RAK3312
