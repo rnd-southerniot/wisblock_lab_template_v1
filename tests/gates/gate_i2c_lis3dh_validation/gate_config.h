@@ -23,8 +23,8 @@
 /* ============================================================
  * I2C Bus Parameters
  * ============================================================ */
-#define GATE_I2C_SDA_PIN            4       /* WisBlock I2C SDA (ESP32) */
-#define GATE_I2C_SCL_PIN            5       /* WisBlock I2C SCL (ESP32) */
+#define GATE_I2C_SDA_PIN            9       /* WisBlock I2C1 SDA (RAK3312 ESP32-S3) */
+#define GATE_I2C_SCL_PIN            40      /* WisBlock I2C1 SCL (RAK3312 ESP32-S3) */
 #define GATE_I2C_FREQ_HZ            100000  /* 100 kHz standard mode */
 
 /* ============================================================

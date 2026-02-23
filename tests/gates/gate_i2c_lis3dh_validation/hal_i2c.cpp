@@ -1,11 +1,14 @@
 /**
  * @file hal_i2c.cpp
- * @brief Gate-local I2C HAL — Wire.h implementation
- * @version 1.0
+ * @brief Gate-local I2C HAL — Wire.h implementation (ESP32-S3 / RAK3312)
+ * @version 1.2
  * @date 2026-02-23
  *
  * Minimal Wire.h wrappers for gate validation only.
  * NOT a production HAL. Scoped to gate_i2c_lis3dh_validation.
+ *
+ * v1.2: Updated for RAK3312 (ESP32-S3). Uses stop-start sequence
+ *       instead of repeated-start for ESP32-S3 Wire library compat.
  */
 
 #include <Wire.h>
@@ -29,7 +32,7 @@ bool hal_i2c_write(uint8_t addr, uint8_t reg, const uint8_t *data, uint8_t len) 
 bool hal_i2c_read(uint8_t addr, uint8_t reg, uint8_t *data, uint8_t len) {
     Wire.beginTransmission(addr);
     Wire.write(reg);
-    if (Wire.endTransmission(false) != 0) {
+    if (Wire.endTransmission() != 0) {
         return false;
     }
     if (Wire.requestFrom(addr, len) != len) {
