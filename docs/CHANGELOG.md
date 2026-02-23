@@ -1,3 +1,36 @@
+## v2.3-gate3-pass-rak3312 (2026-02-24)
+
+### Gate 3 — Modbus Minimal Protocol Validation: PASSED
+
+- **Validated** Modbus RTU Read Holding Register (FC 0x03) round-trip — 7/7 criteria met
+- **Implemented** 7-step parser: length → CRC → slave → exception → func → byte_count → value
+- **Confirmed** discovered parameters from Gate 2: Slave=1, Baud=4800, 8N1
+- **Added** `[env:rak3312_gate3]` PlatformIO environment
+- **Added** `tests/gates/gate_modbus_minimal_protocol/` — gate test files (7 files)
+- **Added** `examples/rak3312/modbus_minimal_protocol/` — standalone example (6 files)
+- **Added** `docs/test_reports/gate_modbus_minimal_protocol_v2.3.md` — full test report
+
+### Validated Protocol
+- TX: `01 03 00 00 00 01 84 0A` (Read Holding Register 0x0000, Qty=1)
+- RX: `01 03 02 00 06 38 46` (Value=0x0006, CRC valid)
+- Parser validated: frame length, CRC-16, slave match, byte_count consistency
+- RS-FSJT-N01 wind speed sensor confirmed operational
+
+---
+
+## v2.2-gate2-pass-rak3312 (2026-02-24)
+
+### Gate 2 — RS485 Autodiscovery Validation: PASSED
+
+- **Discovered** Modbus RTU slave via automated scan: Slave=1, Baud=4800, Parity=NONE
+- **Scanned** 4 baud rates × 3 parity modes × 100 slave addresses (1200 probes max)
+- **Implemented** CRC-16/MODBUS frame validation with exception handling
+- **Added** `[env:rak3312_gate2]` PlatformIO environment
+- **Added** `tests/gates/gate_rs485_autodiscovery_validation/` — gate test files
+- **Confirmed** RS485 bus via RAK5802: EN=GPIO14, DE=GPIO21, UART1 TX=43/RX=44
+
+---
+
 ## v2.1-gate1-pass-rak3312 (2026-02-23)
 
 ### Gate 1 — I2C LIS3DH Re-Validation under Hardware Profile v2.0: PASSED
