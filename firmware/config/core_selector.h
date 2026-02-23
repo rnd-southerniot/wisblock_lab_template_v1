@@ -1,2 +1,2 @@
 #pragma once
-#define CORE_RAK3212
+#define CORE_RAK3312
