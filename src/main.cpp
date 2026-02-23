@@ -1,17 +1,17 @@
 /**
  * @file main.cpp
- * @brief Gate 3 Entry Point — Modbus Minimal Protocol Validation
- * @version 1.1
+ * @brief Gate 5 Entry Point — LoRaWAN Join + Uplink Validation
+ * @version 1.0
  * @date 2026-02-24
  *
  * Minimal Arduino setup/loop for gate testing only.
- * No runtime. No LoRa init.
+ * Calls gate_lorawan_join_uplink_run() once, then idles.
  */
 
 #include <Arduino.h>
 
 /* Gate runner function (defined in gate_runner.cpp) */
-extern void gate_modbus_minimal_protocol_run(void);
+extern void gate_lorawan_join_uplink_run(void);
 
 void setup() {
     /* ---- Early Serial Init ---- */
@@ -26,11 +26,11 @@ void setup() {
     Serial.println("========================================");
     Serial.println("[SYSTEM] WisBlock Gate Test Runner");
     Serial.println("[SYSTEM] Core: RAK3312 (ESP32-S3)");
-    Serial.println("[SYSTEM] Gate: 3 - Modbus Minimal Protocol");
+    Serial.println("[SYSTEM] Gate: 5 - LoRaWAN Join + Uplink");
     Serial.println("========================================");
 
     /* ---- Run Gate Test ---- */
-    gate_modbus_minimal_protocol_run();
+    gate_lorawan_join_uplink_run();
 }
 
 void loop() {
