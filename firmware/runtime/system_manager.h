@@ -17,6 +17,25 @@
 #include "lora_transport.h"
 #include "modbus_peripheral.h"
 
+/**
+ * Runtime statistics — populated by sensorUplinkTask().
+ * Read-only from gate tests via SystemManager::stats().
+ */
+struct RuntimeStats {
+    uint32_t modbus_ok;
+    uint32_t modbus_fail;
+    uint32_t uplink_ok;
+    uint32_t uplink_fail;
+    uint32_t last_cycle_ms;         /* Duration of most recent cycle */
+    uint32_t max_cycle_ms;          /* Worst-case cycle duration */
+    uint8_t  consec_modbus_fail;    /* Current consecutive modbus fail streak */
+    uint8_t  consec_uplink_fail;    /* Current consecutive uplink fail streak */
+    uint8_t  max_consec_modbus_fail;/* Worst consecutive modbus fail streak */
+    uint8_t  max_consec_uplink_fail;/* Worst consecutive uplink fail streak */
+    bool     last_modbus_ok;        /* Was last cycle's modbus read OK? */
+    bool     last_uplink_ok;        /* Was last cycle's uplink send OK? */
+};
+
 class SystemManager {
 public:
     SystemManager();
@@ -47,6 +66,9 @@ public:
     /** Cycle counter — incremented each time sensor-uplink task fires */
     uint32_t cycleCount() const;
 
+    /** Runtime statistics — per-cycle modbus/uplink success/fail counters */
+    const RuntimeStats& stats() const;
+
     /**
      * Set static singleton (required before sensorUplinkTask can fire).
      * Called automatically by init(), or manually for gate testing.
@@ -65,6 +87,7 @@ private:
     LoRaTransport    m_transport;
     ModbusPeripheral m_peripheral;
     uint32_t         m_cycle_count;
+    RuntimeStats     m_stats;
 
     /** Sensor read + uplink task — registered with scheduler */
     static void sensorUplinkTask();

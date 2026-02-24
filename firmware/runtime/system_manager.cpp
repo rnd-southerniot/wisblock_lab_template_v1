@@ -66,7 +66,8 @@ SystemManager::SystemManager()
         cfg.response_timeout_ms = GATE_MODBUS_RESPONSE_TIMEOUT_MS;
         return cfg;
     }())
-    , m_cycle_count(0) {
+    , m_cycle_count(0)
+    , m_stats{} {
 }
 
 /* ============================================================
@@ -132,6 +133,10 @@ uint32_t SystemManager::cycleCount() const {
     return m_cycle_count;
 }
 
+const RuntimeStats& SystemManager::stats() const {
+    return m_stats;
+}
+
 void SystemManager::activate() {
     s_instance = this;
 }
@@ -159,11 +164,19 @@ int8_t SystemManager::registerSensorTask() {
 void SystemManager::sensorUplinkTask() {
     if (!s_instance) return;
 
+    uint32_t t0 = millis();
+    RuntimeStats& st = s_instance->m_stats;
+
     /* 1. Read sensor data into typed frame */
     SensorFrame frame;
     bool read_ok = s_instance->m_peripheral.read(frame);
 
     if (read_ok && frame.valid && frame.count > 0) {
+        /* Track modbus success */
+        st.modbus_ok++;
+        st.consec_modbus_fail = 0;
+        st.last_modbus_ok = true;
+
         /* 2. Encode payload: pack uint16_t values as big-endian bytes */
         uint8_t payload[SENSOR_FRAME_MAX_VALUES * 2];
         uint8_t payload_len = 0;
@@ -176,15 +189,42 @@ void SystemManager::sensorUplinkTask() {
         /* 3. Send encoded payload via transport */
         bool send_ok = s_instance->m_transport.send(payload, payload_len, GATE_PAYLOAD_PORT);
 
+        /* Track uplink success/fail */
+        if (send_ok) {
+            st.uplink_ok++;
+            st.consec_uplink_fail = 0;
+            st.last_uplink_ok = true;
+        } else {
+            st.uplink_fail++;
+            st.consec_uplink_fail++;
+            if (st.consec_uplink_fail > st.max_consec_uplink_fail)
+                st.max_consec_uplink_fail = st.consec_uplink_fail;
+            st.last_uplink_ok = false;
+        }
+
         Serial.printf("[RUNTIME] Cycle %lu: read=OK (%d regs), uplink=%s (port=%d, %d bytes)\r\n",
                       (unsigned long)(s_instance->m_cycle_count + 1),
                       frame.count,
                       send_ok ? "OK" : "FAIL",
                       GATE_PAYLOAD_PORT, payload_len);
     } else {
+        /* Track modbus failure */
+        st.modbus_fail++;
+        st.consec_modbus_fail++;
+        if (st.consec_modbus_fail > st.max_consec_modbus_fail)
+            st.max_consec_modbus_fail = st.consec_modbus_fail;
+        st.last_modbus_ok = false;
+        st.last_uplink_ok = false;  /* No uplink attempted */
+
         Serial.printf("[RUNTIME] Cycle %lu: read=FAIL\r\n",
                       (unsigned long)(s_instance->m_cycle_count + 1));
     }
+
+    /* Track cycle duration */
+    uint32_t dur = millis() - t0;
+    st.last_cycle_ms = dur;
+    if (dur > st.max_cycle_ms)
+        st.max_cycle_ms = dur;
 
     s_instance->m_cycle_count++;
 }

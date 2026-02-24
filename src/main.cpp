@@ -1,16 +1,16 @@
 /**
  * @file main.cpp
- * @brief Gate 6 Entry Point — Runtime Scheduler Integration Validation
+ * @brief Gate 7 Entry Point — Production Loop Soak Validation
  * @version 1.0
  * @date 2026-02-24
  *
  * Minimal Arduino setup/loop for gate testing only.
- * Calls gate_runtime_scheduler_integration_run() once, then idles.
+ * Calls gate_production_loop_soak_run() once (runs for 5 min), then idles.
  */
 
 #include <Arduino.h>
 
-extern void gate_runtime_scheduler_integration_run(void);
+extern void gate_production_loop_soak_run(void);
 
 void setup() {
     Serial.begin(115200);
@@ -21,10 +21,10 @@ void setup() {
     Serial.println("========================================");
     Serial.println("[SYSTEM] WisBlock Gate Test Runner");
     Serial.println("[SYSTEM] Core: RAK3312 (ESP32-S3)");
-    Serial.println("[SYSTEM] Gate: 6 - Runtime Scheduler Integration");
+    Serial.println("[SYSTEM] Gate: 7 - Production Loop Soak");
     Serial.println("========================================");
 
-    gate_runtime_scheduler_integration_run();
+    gate_production_loop_soak_run();
 }
 
 void loop() {
