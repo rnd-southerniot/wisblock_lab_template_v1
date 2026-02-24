@@ -1,3 +1,23 @@
+## v3.3-gate3-pass-rak4631 (2026-02-24)
+
+### Gate 3 — Modbus Minimal Protocol Validation on RAK4631: PASSED
+
+- **Validated** Modbus RTU protocol layer with strict 7-step parser — 8/8 criteria met
+- **Confirmed** Read Holding Register (FC 0x03): Slave=1, Reg=0x0000, Value=0x0004
+- **Implemented** modbus_frame module: CRC-16 builder, FC 0x03 frame builder, 7-step response parser
+- **Reused** Gate 2 HAL patterns: auto DE/RE, `Serial1.flush()`, no `Serial1.end()`
+- **Added** `[env:rak4631_gate3]` PlatformIO environment (nordicnrf52 platform)
+- **Added** `tests/gates/gate_rak4631_modbus_minimal_protocol/` — gate test files (7 files)
+- **Added** `examples/rak4631/modbus_minimal_protocol/` — standalone example (6 files)
+- **Added** `docs/test_reports/rak4631_gate3_modbus_minimal_protocol_v3.3.md` — full test report
+
+### 7-Step Parser Validation Order
+1. Frame length >= 5  2. CRC-16 match  3. Slave address match
+4. Exception detection  5. Function code match  6. byte_count consistency
+7. Register value extraction — all steps passed on first attempt.
+
+---
+
 ## v3.2-gate2-pass-rak4631 (2026-02-24)
 
 ### Gate 2 — RS485 Modbus Autodiscovery on RAK4631: PASSED
