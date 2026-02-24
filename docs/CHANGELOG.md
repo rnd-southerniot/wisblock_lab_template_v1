@@ -1,3 +1,30 @@
+## v3.2-gate2-pass-rak4631 (2026-02-24)
+
+### Gate 2 — RS485 Modbus Autodiscovery on RAK4631: PASSED
+
+- **Discovered** Modbus RTU slave via automated scan: Slave=1, Baud=4800, Parity=NONE
+- **Scanned** 4 baud rates × 2 parity modes × 100 slave addresses (800 probes max)
+- **Found** device on first probe — TX: `01 03 00 00 00 01 84 0A`, RX: `01 03 02 00 07 F9 86`
+- **Fixed** critical DE/RE bug: removed manual GPIO toggling on WB_IO1 (pin 17, NC on RAK5802)
+- **Confirmed** RAK5802 hardware auto-direction — TP8485E DE/RE driven from UART TX line
+- **Restored** `Serial1.flush()` — works correctly on nRF52840, busy-wait was unnecessary
+- **Added** `[env:rak4631_gate2]` PlatformIO environment (nordicnrf52 platform)
+- **Added** `[env:rak4631_gate2_raw]` diagnostic environment (single-probe test)
+- **Added** `tests/gates/gate_rak4631_rs485_autodiscovery_validation/` — gate test files (5 files)
+- **Added** `tests/gates/gate_rak4631_rs485_raw_monitor/` — diagnostic probe gate (2 files)
+- **Added** `examples/rak4631/rs485_autodiscovery/` — standalone example (6 files)
+- **Added** `docs/test_reports/rak4631_gate2_rs485_autodiscovery_v3.2.md` — full test report
+
+### Critical Finding: RAK5802 Auto-Direction
+
+The RAK5802 RS485 module has hardware auto-direction control. The on-board
+TP8485E transceiver's DE/RE is driven automatically from the UART TX line
+via an RC/TCON circuit. WB_IO1 (pin 17) is NC (not connected) to DE/RE.
+Firmware must NOT toggle pin 17 — only power the module via WB_IO2 (pin 34)
+and use `Serial1.write()` + `Serial1.flush()`.
+
+---
+
 ## v3.1-gate1-pass-rak4631 (2026-02-24)
 
 ### Gate 1 — I2C LIS3DH Validation on RAK4631: PASSED

@@ -1,13 +1,13 @@
 /**
  * @file main.cpp
  * @brief Gate Entry Point — RAK4631
- * @version 1.5
+ * @version 1.7
  * @date 2026-02-24
  */
 
 #include <Arduino.h>
 
-extern void gate_rak4631_i2c_lis3dh_validation_run(void);
+extern void gate_rak4631_rs485_autodiscovery_run(void);
 
 void setup() {
     Serial.begin(115200);
@@ -18,10 +18,10 @@ void setup() {
     Serial.println("========================================");
     Serial.println("[SYSTEM] WisBlock Gate Test Runner");
     Serial.println("[SYSTEM] Core: RAK4631 (nRF52840)");
-    Serial.println("[SYSTEM] Gate: 1 - I2C LIS3DH Validation");
+    Serial.println("[SYSTEM] Gate: 2 - RS485 Autodiscovery");
     Serial.println("========================================");
 
-    gate_rak4631_i2c_lis3dh_validation_run();
+    gate_rak4631_rs485_autodiscovery_run();
 }
 
 void loop() {
