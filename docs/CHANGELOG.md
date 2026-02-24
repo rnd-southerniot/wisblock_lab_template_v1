@@ -1,3 +1,30 @@
+## v3.1-gate1-pass-rak4631 (2026-02-24)
+
+### Gate 1 — I2C LIS3DH Validation on RAK4631: PASSED
+
+- **Ported** Gate 1 to RAK4631 WisBlock Core (nRF52840 + SX1262) — 9/9 criteria met
+- **Validated** LIS3DH (0x18) WHO_AM_I=0x33, 100/100 accel reads, zero I2C errors
+- **Confirmed** I2C pins: SDA=13 (P0.13), SCL=14 (P0.14)
+- **Added** `[env:rak4631_gate1]` PlatformIO environment (nordicnrf52 platform)
+- **Added** `tests/gates/gate_rak4631_i2c_lis3dh_validation/` — gate test files (3 files)
+- **Added** `examples/rak4631/i2c_lis3dh_validation/` — standalone example (5 files)
+- **Added** `docs/test_reports/rak4631_gate1_i2c_lis3dh_v3.1.md` — full test report
+
+### RAK4631 Bring-Up Gates (pre-requisites)
+
+- **Gate 0** — Toolchain Validation: compile + serial + LED blink confirmed
+- **Gate 0.5** — DevEUI Read: FICR ID0=0xAEED1EB2, ID1=0x88822444, DevEUI=88:82:24:44:AE:ED:1E:B2
+- **Gate 1A** — I2C Scan: LIS3DH detected at 0x18
+- **Gate 1B** — I2C Identify: WHO_AM_I probes on 0x68/0x69 (ICM-20948 found)
+
+### Platform Notes
+- **TinyUSB:** Must use framework built-in v3.6.0 (symlink), not registry v3.7.4 (causes USB CDC failure)
+- **USB CDC:** `while (!Serial) { ; }` required — DTR-gated output, no timeout
+- **Upload:** Use `--upload-port` explicitly to avoid ststm32 platform auto-detect bug
+- **LED:** Green LED (P1.03) not populated on this board; using blue LED (P1.04)
+
+---
+
 ## v2.3-gate3-pass-rak3312 (2026-02-24)
 
 ### Gate 3 — Modbus Minimal Protocol Validation: PASSED
