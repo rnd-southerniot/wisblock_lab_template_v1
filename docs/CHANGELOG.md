@@ -1,3 +1,26 @@
+## v3.4-gate4-pass-rak4631 (2026-02-24)
+
+### Gate 4 — Modbus Robustness Layer Validation on RAK4631: PASSED
+
+- **Validated** multi-register read (FC 0x03, qty=2) with retry mechanism — 8/8 criteria met
+- **Confirmed** 2-register read: Reg[0]=0x0006 (wind speed), Reg[1]=0x0001 (wind direction)
+- **Implemented** retry policy: 3 retries (4 total), retryable on TIMEOUT/CRC_FAIL only
+- **Implemented** error classification enum: NONE, TIMEOUT, CRC_FAIL, LENGTH_FAIL, EXCEPTION, UART_ERROR
+- **Implemented** UART recovery: re-init after 2 consecutive retryable failures (no Serial1.end())
+- **Validated** byte_count == 2 × quantity: 4 == 2 × 2
+- **Reused** Gate 3's modbus_frame (CRC, frame builder, 7-step parser) and hal_uart (auto DE/RE)
+- **Added** `[env:rak4631_gate4]` PlatformIO environment (nordicnrf52 platform)
+- **Added** `tests/gates/gate_rak4631_modbus_robustness_layer/` — gate test files (3 files)
+- **Added** `examples/rak4631/modbus_robustness_layer/` — standalone example (6 files)
+- **Added** `docs/test_reports/rak4631_gate4_modbus_robustness_v3.4.md` — full test report
+
+### Protocol Trace
+- TX: `01 03 00 00 00 02 C4 0B` (Read 2 Holding Registers from 0x0000)
+- RX: `01 03 04 00 06 00 01 DB F2` (byte_count=4, Reg[0]=0x0006, Reg[1]=0x0001, CRC valid)
+- Result: SUCCESS on attempt 1 (0 retries, 0 UART recoveries)
+
+---
+
 ## v3.3-gate3-pass-rak4631 (2026-02-24)
 
 ### Gate 3 — Modbus Minimal Protocol Validation on RAK4631: PASSED
