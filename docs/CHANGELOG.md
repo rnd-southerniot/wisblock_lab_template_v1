@@ -1,3 +1,37 @@
+## v3.5-gate5-pass-rak4631 (2026-02-25)
+
+### Gate 5 — LoRaWAN OTAA Join + Modbus Uplink on RAK4631: PASSED
+
+- **Validated** end-to-end LoRaWAN uplink from sensor to network server — 7/7 criteria met (criterion 7 pending ChirpStack manual verification)
+- **Confirmed** OTAA join on AS923-1 in 5.8 seconds via `lora_rak4630_init()` + `lmh_init()` + `lmh_join()`
+- **Confirmed** Modbus multi-register read: Reg[0]=0x0004 (wind speed), Reg[1]=0x0001 (wind direction)
+- **Confirmed** 4-byte payload encoding: `00 04 00 01` (big-endian register values)
+- **Confirmed** unconfirmed uplink sent on port 10 via `lmh_send()`
+- **Used** SX126x-Arduino library (beegee-tokyo/SX126x-Arduino@^2.0.32) — same as RAK3312
+- **Used** `lora_rak4630_init()` one-liner for SX1262 hardware init (no manual hw_config struct)
+- **Reused** Gate 3's modbus_frame (CRC, frame builder, 7-step parser) and hal_uart (auto DE/RE)
+- **Added** `[env:rak4631_gate5]` PlatformIO environment with `-DRAK4630 -D_VARIANT_RAK4630_` flags
+- **Added** `tests/gates/gate_rak4631_lorawan_join_uplink/` — gate test files (3 files)
+- **Added** `examples/rak4631/lorawan_join_modbus_uplink/` — standalone example (6 files)
+- **Added** `docs/test_reports/rak4631_gate5_lorawan_join_uplink_v3.5.md` — full test report
+
+### LoRaWAN Configuration
+- Region: AS923-1, Class A, ADR=OFF, DR2 (SF10), TX_POWER_0
+- DevEUI: `88:82:24:44:AE:ED:1E:B2` (Gate 0.5 FICR read)
+- Join: OTAA, 3 trials, 30s timeout — accepted in 5777ms
+
+### Protocol Trace
+- TX: `01 03 00 00 00 02 C4 0B` (Read 2 Holding Registers from 0x0000)
+- RX: `01 03 04 00 04 00 01 7A 32` (byte_count=4, Reg[0]=0x0004, Reg[1]=0x0001, CRC valid)
+- Payload: `00 04 00 01` → uplink port 10, unconfirmed
+
+### Critical Build Flag Discovery
+- RAK4631 variant.h defines `_VARIANT_RAK4631_` but SX126x-Arduino library needs `_VARIANT_RAK4630_`
+- Must add `-DRAK4630 -D_VARIANT_RAK4630_` to build_flags for `SPI_LORA` instantiation
+- Confirmed by `#warning USING RAK4630` from `RAK4630_MOD.cpp` during compilation
+
+---
+
 ## v3.4-gate4-pass-rak4631 (2026-02-24)
 
 ### Gate 4 — Modbus Robustness Layer Validation on RAK4631: PASSED

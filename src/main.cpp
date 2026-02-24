@@ -1,13 +1,13 @@
 /**
  * @file main.cpp
  * @brief Gate Entry Point — RAK4631
- * @version 1.9
+ * @version 2.0
  * @date 2026-02-24
  */
 
 #include <Arduino.h>
 
-extern void gate_rak4631_modbus_robustness_layer_run(void);
+extern void gate_rak4631_lorawan_join_uplink_run(void);
 
 void setup() {
     Serial.begin(115200);
@@ -18,10 +18,10 @@ void setup() {
     Serial.println("========================================");
     Serial.println("[SYSTEM] WisBlock Gate Test Runner");
     Serial.println("[SYSTEM] Core: RAK4631 (nRF52840)");
-    Serial.println("[SYSTEM] Gate: 4 - Modbus Robustness Layer");
+    Serial.println("[SYSTEM] Gate: 5 - LoRaWAN Join + Uplink");
     Serial.println("========================================");
 
-    gate_rak4631_modbus_robustness_layer_run();
+    gate_rak4631_lorawan_join_uplink_run();
 }
 
 void loop() {
