@@ -62,7 +62,15 @@ LoRaTransport::LoRaTransport(const LoRaTransportConfig& cfg)
 bool LoRaTransport::init() {
     s_instance = this;
 
-    /* ---- Configure SX1262 hardware pin mapping ---- */
+#ifdef CORE_RAK4631
+    /* RAK4631: BSP one-liner — all SX1262 pins handled internally.
+     * Requires -DRAK4630 and -D_VARIANT_RAK4630_ build flags. */
+    uint32_t hw_err = lora_rak4630_init();
+    if (hw_err != 0) {
+        return false;
+    }
+#else
+    /* RAK3312: Manual SX1262 pin mapping */
     hw_config hwConfig;
     hwConfig.CHIP_TYPE           = SX1262_CHIP;
     hwConfig.PIN_LORA_RESET      = m_cfg.pin_reset;
@@ -85,6 +93,7 @@ bool LoRaTransport::init() {
     if (hw_err != 0) {
         return false;
     }
+#endif
 
     /* ---- Build LoRaWAN parameters (static — lmh_init stores pointer) ---- */
     static lmh_param_t lora_param;

@@ -117,7 +117,7 @@ void SystemManager::tick() {
 /* ============================================================
  * Accessors (for gate test inspection)
  * ============================================================ */
-Scheduler& SystemManager::scheduler() {
+TaskScheduler& SystemManager::scheduler() {
     return m_scheduler;
 }
 

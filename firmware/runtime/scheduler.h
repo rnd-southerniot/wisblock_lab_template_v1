@@ -26,9 +26,9 @@ struct SchedulerTask {
     const char* name;
 };
 
-class Scheduler {
+class TaskScheduler {
 public:
-    Scheduler();
+    TaskScheduler();
 
     /**
      * Register a periodic task.

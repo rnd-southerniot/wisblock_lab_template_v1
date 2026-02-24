@@ -1,3 +1,45 @@
+## v3.6-gate6-pass-rak4631 (2026-02-25)
+
+### Gate 6 — Runtime Scheduler Integration on RAK4631: PASSED
+
+- **Validated** production runtime architecture: SystemManager + TaskScheduler + LoRaTransport + ModbusPeripheral — 10/10 criteria met
+- **Confirmed** 3 sensor-uplink cycles via cooperative scheduler: Modbus read → encode → LoRaWAN uplink
+- **Confirmed** scheduler tick validation: dry-run tick() returns without firing (interval not elapsed)
+- **Confirmed** fireNow() forces immediate task execution, bypassing interval check
+- **Confirmed** multi-cycle reliability: 3/3 cycles completed, transport still connected
+- **Ported** `firmware/runtime/` layer to RAK4631 with `#ifdef CORE_RAK4631` guards (3 files)
+- **Modified** `lora_transport.cpp` — `lora_rak4630_init()` BSP one-liner for SX1262 init
+- **Modified** `modbus_peripheral.cpp` — RAK4631 HAL includes, 2-arg UART init, 1-arg RS485 enable, skip deinit()
+- **Renamed** `Scheduler` → `TaskScheduler` in 4 files to avoid Adafruit nRF52 BSP symbol collision (`extern SchedulerRTOS Scheduler` in `rtos.h`)
+- **Verified** RAK3312 regression: `rak3312_gate6` still compiles after all `#ifdef` changes
+- **Added** `[env:rak4631_gate6]` PlatformIO environment with `-DCORE_RAK4631 -DRAK4630 -D_VARIANT_RAK4630_`
+- **Added** `tests/gates/gate_rak4631_runtime_scheduler_integration/` — gate test files (3 files)
+- **Added** `examples/rak4631/runtime_scheduler_integration/` — standalone example (6 files)
+- **Added** `docs/test_reports/rak4631_gate6_runtime_scheduler_v3.6.md` — full test report
+
+### Runtime Architecture
+
+- SystemManager: orchestrates init sequence + scheduler dispatch
+- TaskScheduler: cooperative millis()-based scheduler (renamed from Scheduler)
+- LoRaTransport: SX1262 via `lora_rak4630_init()`, OTAA join, unconfirmed uplinks
+- ModbusPeripheral: RS485 via RAK4631 HAL (auto DE/RE), SensorFrame typed data
+- Data flow: ModbusPeripheral → SensorFrame → big-endian encode → LoRaTransport
+
+### Multi-Cycle Results
+
+- Cycle 1: Reg[0]=0x0004, Reg[1]=0x0001, Payload=`00 04 00 01`, port 10
+- Cycle 2: Reg[0]=0x0001, Reg[1]=0x0000, Payload=`00 01 00 00`, port 10
+- Cycle 3: Reg[0]=0x0002, Reg[1]=0x0000, Payload=`00 02 00 00`, port 10
+
+### Scheduler→TaskScheduler Rename (BSP Symbol Collision)
+
+- Adafruit nRF52 BSP `rtos.h` declares `extern SchedulerRTOS Scheduler;` global variable
+- This shadowed our `class Scheduler`, causing `'Scheduler' does not name a type`
+- Renamed to `TaskScheduler` in: scheduler.h, scheduler.cpp, system_manager.h, system_manager.cpp
+- No behavior change. RAK3312 builds unaffected.
+
+---
+
 ## v3.5-gate5-pass-rak4631 (2026-02-25)
 
 ### Gate 5 — LoRaWAN OTAA Join + Modbus Uplink on RAK4631: PASSED

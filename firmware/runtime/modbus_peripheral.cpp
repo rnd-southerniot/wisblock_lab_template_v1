@@ -15,8 +15,14 @@
 #include <Arduino.h>
 #include <string.h>
 #include "modbus_peripheral.h"
+
+#ifdef CORE_RAK4631
+#include "../../tests/gates/gate_rak4631_modbus_minimal_protocol/modbus_frame.h"
+#include "../../tests/gates/gate_rak4631_modbus_minimal_protocol/hal_uart.h"
+#else
 #include "../../tests/gates/gate_modbus_minimal_protocol/modbus_frame.h"
 #include "../../tests/gates/gate_modbus_minimal_protocol/hal_uart.h"
+#endif
 
 ModbusPeripheral::ModbusPeripheral(const ModbusPeripheralConfig& cfg)
     : m_cfg(cfg)
@@ -26,13 +32,19 @@ ModbusPeripheral::ModbusPeripheral(const ModbusPeripheralConfig& cfg)
 }
 
 bool ModbusPeripheral::init() {
-    /* Enable RS485 transceiver (RAK5802) */
+#ifdef CORE_RAK4631
+    /* RAK4631: 1-arg RS485 enable (auto DE/RE), 2-arg UART init (no pin args) */
+    hal_rs485_enable(m_cfg.rs485_en_pin);
+
+    if (!hal_uart_init(m_cfg.baud, m_cfg.parity)) {
+#else
+    /* RAK3312: 2-arg RS485 enable, 4-arg UART init */
     hal_rs485_enable(m_cfg.rs485_en_pin, m_cfg.rs485_de_pin);
 
-    /* Initialize UART */
     if (!hal_uart_init(m_cfg.uart_tx_pin, m_cfg.uart_rx_pin,
                        m_cfg.baud, m_cfg.parity)) {
         hal_rs485_disable();
+#endif
         return false;
     }
 
@@ -127,8 +139,10 @@ bool ModbusPeripheral::read(SensorFrame& frame) {
 
 void ModbusPeripheral::deinit() {
     if (m_initialized) {
-        hal_uart_deinit();
+#ifndef CORE_RAK4631
+        hal_uart_deinit();      /* Serial1.end() hangs on nRF52840 — skip on RAK4631 */
         hal_rs485_disable();
+#endif
         m_initialized = false;
     }
 }
