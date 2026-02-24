@@ -149,6 +149,7 @@ static const uint8_t HW_RS485_PARITY_OPTIONS[] = { 0, 1, 2 };
 #define HW_LORAWAN_FREQ_RANGE       "863-928 MHz"
 #define HW_LORAWAN_UPLINK_INTERVAL  30          /* seconds */
 #define HW_LORAWAN_NETWORK_SERVER   "CHIRPSTACK_V4"
+#define HW_SYSTEM_POLL_INTERVAL_MS  (HW_LORAWAN_UPLINK_INTERVAL * 1000)  /* 30000ms */
 
 /* ============================================================
  * SECTION 9 — Reserved / Conflict Pins
