@@ -1,12 +1,15 @@
 /**
  * @file modbus_peripheral.cpp
  * @brief ModbusPeripheral — Implementation
- * @version 1.0
+ * @version 1.1
  * @date 2026-02-24
  *
  * Wraps Gate 3's shared modbus_frame and hal_uart layers.
  * Implements PeripheralInterface::read() with retry logic.
- * Output: registers packed big-endian into caller buffer.
+ *
+ * v1.1: read() outputs SensorFrame with typed uint16_t register values.
+ *       Payload encoding is no longer done here — that responsibility
+ *       belongs to SystemManager (the orchestrator).
  */
 
 #include <Arduino.h>
@@ -41,8 +44,12 @@ bool ModbusPeripheral::init() {
     return true;
 }
 
-bool ModbusPeripheral::read(uint8_t* buf, uint8_t* len) {
-    if (!m_initialized || buf == nullptr || len == nullptr) {
+bool ModbusPeripheral::read(SensorFrame& frame) {
+    frame.valid = false;
+    frame.count = 0;
+    frame.timestamp_ms = 0;
+
+    if (!m_initialized) {
         return false;
     }
 
@@ -94,24 +101,23 @@ bool ModbusPeripheral::read(uint8_t* buf, uint8_t* len) {
             continue;
         }
 
-        /* Extract register values and pack into output buffer (big-endian) */
-        uint8_t out_len = 0;
+        /* Extract register values into SensorFrame */
+        frame.count = 0;
         m_last_count = 0;
 
-        for (uint8_t i = 0; i < quantity && i < 8; i++) {
-            uint8_t hi = resp.raw[3 + i * 2];
-            uint8_t lo = resp.raw[4 + i * 2];
+        for (uint8_t i = 0; i < quantity && i < SENSOR_FRAME_MAX_VALUES; i++) {
+            uint16_t val = ((uint16_t)resp.raw[3 + i * 2] << 8)
+                         | (uint16_t)resp.raw[4 + i * 2];
 
-            m_last_values[i] = ((uint16_t)hi << 8) | lo;
+            frame.values[i] = val;
+            frame.count++;
+
+            m_last_values[i] = val;
             m_last_count++;
-
-            if (out_len + 2 <= *len) {
-                buf[out_len++] = hi;
-                buf[out_len++] = lo;
-            }
         }
 
-        *len = out_len;
+        frame.timestamp_ms = millis();
+        frame.valid = true;
         return true;
     }
 

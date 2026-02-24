@@ -86,8 +86,9 @@ bool LoRaTransport::init() {
         return false;
     }
 
-    /* ---- Build LoRaWAN parameters ---- */
-    lmh_param_t lora_param;
+    /* ---- Build LoRaWAN parameters (static — lmh_init stores pointer) ---- */
+    static lmh_param_t lora_param;
+    memset(&lora_param, 0, sizeof(lora_param));
     lora_param.adr_enable      = m_cfg.adr_enable ? LORAWAN_ADR_ON : LORAWAN_ADR_OFF;
     lora_param.tx_data_rate    = m_cfg.datarate;
     lora_param.enable_public_network = m_cfg.public_network;
@@ -95,15 +96,16 @@ bool LoRaTransport::init() {
     lora_param.tx_power        = m_cfg.tx_power;
     lora_param.duty_cycle      = LORAWAN_DUTYCYCLE_OFF;
 
-    /* ---- Build callback table ---- */
-    lmh_callback_t lora_callbacks;
+    /* ---- Build callback table (static — lmh_init stores pointer) ---- */
+    static lmh_callback_t lora_callbacks;
+    memset(&lora_callbacks, 0, sizeof(lora_callbacks));
     lora_callbacks.BoardGetBatteryLevel = BoardGetBatteryLevel;
     lora_callbacks.BoardGetUniqueId     = BoardGetUniqueId;
     lora_callbacks.BoardGetRandomSeed   = BoardGetRandomSeed;
-    lora_callbacks.lorawan_rx_handler   = on_rx_data;
-    lora_callbacks.lorawan_has_joined_handler  = on_joined;
-    lora_callbacks.lorawan_confirm_class_handler = on_confirm_class;
-    lora_callbacks.lorawan_join_failed_handler = on_join_failed;
+    lora_callbacks.lmh_RxData           = on_rx_data;
+    lora_callbacks.lmh_has_joined       = on_joined;
+    lora_callbacks.lmh_ConfirmClass     = on_confirm_class;
+    lora_callbacks.lmh_has_joined_failed = on_join_failed;
 
     /* ---- Initialize LoRaMAC handler ---- */
     uint32_t err = lmh_init(&lora_callbacks, lora_param, true,

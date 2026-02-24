@@ -146,24 +146,41 @@ int8_t SystemManager::registerSensorTask() {
 /* ============================================================
  * sensorUplinkTask() — Static callback for scheduler
  *
- * 1. Read Modbus registers
- * 2. Send LoRaWAN uplink
- * 3. Increment cycle count
- * 4. Log result with [RUNTIME] tag
+ * 1. Read Modbus registers into SensorFrame (typed data)
+ * 2. Encode payload locally (big-endian register packing)
+ * 3. Send encoded payload via LoRaWAN transport
+ * 4. Increment cycle count
+ * 5. Log result with [RUNTIME] tag
+ *
+ * Data flow:
+ *   ModbusPeripheral → SensorFrame → local encode → LoRaTransport
+ *   No raw byte buffer passes between peripheral and transport.
  * ============================================================ */
 void SystemManager::sensorUplinkTask() {
     if (!s_instance) return;
 
-    uint8_t buf[16];
-    uint8_t len = sizeof(buf);
+    /* 1. Read sensor data into typed frame */
+    SensorFrame frame;
+    bool read_ok = s_instance->m_peripheral.read(frame);
 
-    bool read_ok = s_instance->m_peripheral.read(buf, &len);
-    if (read_ok && len > 0) {
-        bool send_ok = s_instance->m_transport.send(buf, len, GATE_PAYLOAD_PORT);
-        Serial.printf("[RUNTIME] Cycle %lu: read=%s (%d bytes), uplink=%s (port=%d)\r\n",
+    if (read_ok && frame.valid && frame.count > 0) {
+        /* 2. Encode payload: pack uint16_t values as big-endian bytes */
+        uint8_t payload[SENSOR_FRAME_MAX_VALUES * 2];
+        uint8_t payload_len = 0;
+
+        for (uint8_t i = 0; i < frame.count; i++) {
+            payload[payload_len++] = (uint8_t)(frame.values[i] >> 8);
+            payload[payload_len++] = (uint8_t)(frame.values[i] & 0xFF);
+        }
+
+        /* 3. Send encoded payload via transport */
+        bool send_ok = s_instance->m_transport.send(payload, payload_len, GATE_PAYLOAD_PORT);
+
+        Serial.printf("[RUNTIME] Cycle %lu: read=OK (%d regs), uplink=%s (port=%d, %d bytes)\r\n",
                       (unsigned long)(s_instance->m_cycle_count + 1),
-                      read_ok ? "OK" : "FAIL", len,
-                      send_ok ? "OK" : "FAIL", GATE_PAYLOAD_PORT);
+                      frame.count,
+                      send_ok ? "OK" : "FAIL",
+                      GATE_PAYLOAD_PORT, payload_len);
     } else {
         Serial.printf("[RUNTIME] Cycle %lu: read=FAIL\r\n",
                       (unsigned long)(s_instance->m_cycle_count + 1));

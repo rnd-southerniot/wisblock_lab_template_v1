@@ -1,12 +1,14 @@
 /**
  * @file modbus_peripheral.h
  * @brief ModbusPeripheral class — wraps Gate 3 Modbus/UART layer
- * @version 1.0
+ * @version 1.1
  * @date 2026-02-24
  *
  * Implements PeripheralInterface for Modbus RTU sensor reading.
  * Wraps Gate 3's modbus_frame and hal_uart shared layers.
  * Configuration via ModbusPeripheralConfig struct (no hardcoded pins).
+ *
+ * v1.1: read() now outputs SensorFrame instead of raw byte buffer.
  *
  * Part of firmware/runtime/ production abstraction layer.
  */
@@ -40,11 +42,11 @@ public:
     explicit ModbusPeripheral(const ModbusPeripheralConfig& cfg);
 
     bool init() override;
-    bool read(uint8_t* buf, uint8_t* len) override;
+    bool read(SensorFrame& frame) override;
     void deinit() override;
     const char* name() const override { return "ModbusPeripheral"; }
 
-    /** Get last read register value by index (for logging) */
+    /** Get last read register value by index (for gate test logging) */
     uint16_t lastRegValue(uint8_t index) const;
 
     /** Get number of registers from last successful read */
