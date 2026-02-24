@@ -1,3 +1,43 @@
+## v3.7-gate7-pass-rak4631 (2026-02-25)
+
+### Gate 7 — Production Loop Soak on RAK4631: PASSED
+
+- **Validated** 5-minute production soak: scheduler runs naturally via `tick()`, no `fireNow()` — 7/7 criteria met
+- **Confirmed** 9 sensor-uplink cycles over 300 seconds (30s interval, natural scheduler dispatch)
+- **Confirmed** zero Modbus failures: 9 OK / 0 FAIL, max consecutive fail = 0
+- **Confirmed** zero uplink failures: 9 OK / 0 FAIL, max consecutive fail = 0
+- **Confirmed** cycle timing stability: 80-82 ms per cycle (max 82 ms, limit 1500 ms — 18x margin)
+- **Confirmed** single OTAA join: `SystemManager::init()` joins once, no re-joins during soak
+- **Confirmed** transport remained connected throughout entire 5-minute soak
+- **No runtime modifications**: gate harness only — observes `sys.tick()` + `sys.stats()`
+- **Added** `[env:rak4631_gate7]` PlatformIO environment with `-DCORE_RAK4631 -DRAK4630 -D_VARIANT_RAK4630_`
+- **Added** `tests/gates/gate_rak4631_production_loop_soak/` — gate test files (3 files)
+- **Added** `examples/rak4631/production_loop_soak/` — standalone example (6 files)
+- **Added** `docs/test_reports/rak4631_gate7_production_soak_v3.7.md` — full test report
+
+### Production Soak Results
+
+- Duration: 300,007 ms (300 s)
+- Total Cycles: 9
+- Modbus: 9 OK / 0 FAIL
+- Uplinks: 9 OK / 0 FAIL
+- Max Consecutive Fail: modbus=0, uplink=0
+- Max Cycle Duration: 82 ms
+- Transport: connected
+- Join Attempts: 1
+
+### Key Difference from Gate 6
+
+| Aspect | Gate 6 (Forced Cycles) | Gate 7 (Production Soak) |
+|--------|------------------------|--------------------------|
+| Execution | `fireNow()` x 3 cycles | `tick()` for 5 minutes |
+| Duration | ~45 seconds | ~5.5 minutes |
+| Scheduling | Forced immediate | Natural 30s interval |
+| Validation | All 3 cycles must pass | Aggregate stability metrics |
+| What it proves | Runtime *works* | Runtime is *stable over time* |
+
+---
+
 ## v3.6-gate6-pass-rak4631 (2026-02-25)
 
 ### Gate 6 — Runtime Scheduler Integration on RAK4631: PASSED

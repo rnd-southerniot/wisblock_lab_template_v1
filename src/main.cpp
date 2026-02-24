@@ -12,9 +12,9 @@
 #include <Arduino.h>
 
 #ifdef CORE_RAK4631
-extern void gate_rak4631_runtime_scheduler_integration_run(void);
+extern void gate_rak4631_production_loop_soak_run(void);
 #else
-extern void gate_runtime_scheduler_integration_run(void);
+extern void gate_production_loop_soak_run(void);
 #endif
 
 void setup() {
@@ -30,13 +30,13 @@ void setup() {
 #else
     Serial.println("[SYSTEM] Core: RAK3312 (ESP32-S3)");
 #endif
-    Serial.println("[SYSTEM] Gate: 6 - Runtime Scheduler Integration");
+    Serial.println("[SYSTEM] Gate: 7 - Production Loop Soak");
     Serial.println("========================================");
 
 #ifdef CORE_RAK4631
-    gate_rak4631_runtime_scheduler_integration_run();
+    gate_rak4631_production_loop_soak_run();
 #else
-    gate_runtime_scheduler_integration_run();
+    gate_production_loop_soak_run();
 #endif
 }
 
