@@ -1,12 +1,14 @@
 /**
  * @file modbus_peripheral.cpp
  * @brief ModbusPeripheral — Implementation
- * @version 1.1
- * @date 2026-02-24
+ * @version 1.2
+ * @date 2026-02-25
  *
- * Wraps Gate 3's shared modbus_frame and hal_uart layers.
+ * Wraps Gate 3's shared modbus_frame layer and platform-agnostic uart_hal.
  * Implements PeripheralInterface::read() with retry logic.
  *
+ * v1.2: Uses firmware/hal/ UART abstraction — zero platform #ifdefs.
+ *       uart_hal.h replaces per-gate hal_uart.h variants.
  * v1.1: read() outputs SensorFrame with typed uint16_t register values.
  *       Payload encoding is no longer done here — that responsibility
  *       belongs to SystemManager (the orchestrator).
@@ -15,14 +17,9 @@
 #include <Arduino.h>
 #include <string.h>
 #include "modbus_peripheral.h"
-
-#ifdef CORE_RAK4631
-#include "../../tests/gates/gate_rak4631_modbus_minimal_protocol/modbus_frame.h"
-#include "../../tests/gates/gate_rak4631_modbus_minimal_protocol/hal_uart.h"
-#else
-#include "../../tests/gates/gate_modbus_minimal_protocol/modbus_frame.h"
-#include "../../tests/gates/gate_modbus_minimal_protocol/hal_uart.h"
-#endif
+#include "modbus_frame.h"
+#include "uart_hal.h"
+#include "gate_config.h"
 
 ModbusPeripheral::ModbusPeripheral(const ModbusPeripheralConfig& cfg)
     : m_cfg(cfg)
@@ -32,24 +29,17 @@ ModbusPeripheral::ModbusPeripheral(const ModbusPeripheralConfig& cfg)
 }
 
 bool ModbusPeripheral::init() {
-#ifdef CORE_RAK4631
-    /* RAK4631: 1-arg RS485 enable (auto DE/RE), 2-arg UART init (no pin args) */
-    hal_rs485_enable(m_cfg.rs485_en_pin);
+    /* Enable RS485 transceiver via platform HAL */
+    uart_rs485_enable(true);
 
-    if (!hal_uart_init(m_cfg.baud, m_cfg.parity)) {
-#else
-    /* RAK3312: 2-arg RS485 enable, 4-arg UART init */
-    hal_rs485_enable(m_cfg.rs485_en_pin, m_cfg.rs485_de_pin);
-
-    if (!hal_uart_init(m_cfg.uart_tx_pin, m_cfg.uart_rx_pin,
-                       m_cfg.baud, m_cfg.parity)) {
-        hal_rs485_disable();
-#endif
+    /* Initialize UART via platform HAL (pins resolved internally) */
+    if (!uart_init(m_cfg.baud, m_cfg.parity)) {
+        uart_rs485_enable(false);
         return false;
     }
 
     /* Flush and stabilize */
-    hal_uart_flush();
+    uart_flush();
     delay(50);
 
     m_initialized = true;
@@ -86,16 +76,16 @@ bool ModbusPeripheral::read(SensorFrame& frame) {
         }
 
         /* Flush stale RX data */
-        hal_uart_flush();
+        uart_flush();
         delay(10);
 
         /* Send request */
-        if (!hal_uart_write(tx_buf, 8)) {
+        if (uart_write(tx_buf, 8) != 8) {
             continue;
         }
 
         /* Read response */
-        uint8_t rx_len = hal_uart_read(rx_buf, 32, m_cfg.response_timeout_ms);
+        int rx_len = uart_read(rx_buf, 32, m_cfg.response_timeout_ms, GATE_INTER_BYTE_TIMEOUT_MS);
         if (rx_len == 0) {
             continue;
         }
@@ -139,10 +129,8 @@ bool ModbusPeripheral::read(SensorFrame& frame) {
 
 void ModbusPeripheral::deinit() {
     if (m_initialized) {
-#ifndef CORE_RAK4631
-        hal_uart_deinit();      /* Serial1.end() hangs on nRF52840 — skip on RAK4631 */
-        hal_rs485_disable();
-#endif
+        uart_deinit();           /* nRF52: no-op (safe), ESP32: Serial1.end() */
+        uart_rs485_enable(false); /* Power down RS485 module */
         m_initialized = false;
     }
 }

@@ -1,31 +1,33 @@
 /**
  * @file lora_transport.h
- * @brief LoRaTransport class — wraps SX126x-Arduino LoRaWAN stack
- * @version 1.0
- * @date 2026-02-24
+ * @brief LoRaTransport class — LoRaWAN uplink via HAL
+ * @version 2.0
+ * @date 2026-02-25
  *
- * Implements TransportInterface for LoRaWAN uplink via SX1262.
- * Uses static singleton + C callback trampolines for SX126x-Arduino
- * library compatibility (requires C function pointers).
+ * Implements TransportInterface for LoRaWAN uplink.
+ * Delegates all radio operations to firmware/hal/lorawan_hal.h.
  *
- * Single transport instance assumed (realistic for LoRaWAN devices).
+ * v2.0: Fully decoupled from SX126x-Arduino library.
+ *       No <LoRaWan-Arduino.h> include. No lmh_* types.
+ *       Callback trampolines and join state moved to HAL.
+ *       SX1262 pin fields removed from config (HAL reads gate_config.h directly).
+ * v1.0: Direct SX126x-Arduino dependency with static singleton + C trampolines.
  *
  * Part of firmware/runtime/ production abstraction layer.
  */
 
 #pragma once
 #include <stdint.h>
-#include <LoRaWan-Arduino.h>
 #include "transport_interface.h"
+#include "lorawan_hal.h"
 
 /**
- * Configuration for LoRaTransport — all parameters injectable.
+ * Configuration for LoRaTransport — injectable parameters.
+ *
+ * v2.0: SX1262 pin fields removed (HAL reads them from gate_config.h).
+ *       Only OTAA credentials and LoRaWAN radio parameters remain.
  */
 struct LoRaTransportConfig {
-    /* SX1262 pin mapping */
-    int pin_nss, pin_sck, pin_mosi, pin_miso;
-    int pin_reset, pin_dio1, pin_busy, pin_ant_sw;
-
     /* OTAA credentials */
     uint8_t dev_eui[8];
     uint8_t app_eui[8];
@@ -51,16 +53,5 @@ public:
 
 private:
     LoRaTransportConfig m_cfg;
-    volatile bool m_joined;
-    volatile bool m_join_failed;
     bool m_initialized;
-
-    /* Static singleton for C callback trampolines */
-    static LoRaTransport* s_instance;
-
-    /* C-compatible callback trampolines */
-    static void on_joined();
-    static void on_join_failed();
-    static void on_rx_data(lmh_app_data_t* data);
-    static void on_confirm_class(DeviceClass_t cls);
 };

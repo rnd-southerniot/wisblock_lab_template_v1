@@ -25,14 +25,6 @@ SystemManager* SystemManager::s_instance = nullptr;
 SystemManager::SystemManager()
     : m_transport([]() -> LoRaTransportConfig {
         LoRaTransportConfig cfg = {};
-        cfg.pin_nss   = GATE_LORA_PIN_NSS;
-        cfg.pin_sck   = GATE_LORA_PIN_SCK;
-        cfg.pin_mosi  = GATE_LORA_PIN_MOSI;
-        cfg.pin_miso  = GATE_LORA_PIN_MISO;
-        cfg.pin_reset = GATE_LORA_PIN_RESET;
-        cfg.pin_dio1  = GATE_LORA_PIN_DIO1;
-        cfg.pin_busy  = GATE_LORA_PIN_BUSY;
-        cfg.pin_ant_sw = GATE_LORA_PIN_ANT_SW;
 
         uint8_t dev_eui[] = GATE_LORAWAN_DEV_EUI;
         uint8_t app_eui[] = GATE_LORAWAN_APP_EUI;
