@@ -52,6 +52,12 @@ public:
     /** Get number of registers from last successful read */
     uint8_t lastRegCount() const;
 
+    /** Change slave address for subsequent reads. */
+    void setSlaveAddr(uint8_t addr);
+
+    /** Get current slave address. */
+    uint8_t slaveAddr() const;
+
 private:
     ModbusPeripheralConfig m_cfg;
     bool     m_initialized;

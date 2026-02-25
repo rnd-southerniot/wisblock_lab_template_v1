@@ -73,3 +73,14 @@ void TaskScheduler::fireNow(uint8_t index) {
     m_tasks[index].last_run_ms = millis();
     m_tasks[index].callback();
 }
+
+bool TaskScheduler::setInterval(uint8_t index, uint32_t new_interval_ms) {
+    if (index >= m_count) return false;
+    m_tasks[index].interval_ms = new_interval_ms;
+    return true;
+}
+
+uint32_t TaskScheduler::taskInterval(uint8_t index) const {
+    if (index >= m_count) return 0;
+    return m_tasks[index].interval_ms;
+}

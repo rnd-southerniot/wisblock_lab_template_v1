@@ -145,3 +145,11 @@ uint16_t ModbusPeripheral::lastRegValue(uint8_t index) const {
 uint8_t ModbusPeripheral::lastRegCount() const {
     return m_last_count;
 }
+
+void ModbusPeripheral::setSlaveAddr(uint8_t addr) {
+    m_cfg.slave_addr = addr;
+}
+
+uint8_t ModbusPeripheral::slaveAddr() const {
+    return m_cfg.slave_addr;
+}

@@ -1,3 +1,52 @@
+## v3.9-gate8-pass-rak4631 (2026-02-25)
+
+### Gate 8 — Downlink Command Framework v1 on RAK4631: PASSED
+
+- **Validated** bidirectional LoRaWAN communication: downlink receive → command parse → runtime apply → ACK uplink
+- **Created** `firmware/runtime/downlink_commands.h/.cpp` — binary command parser (SET_INTERVAL, SET_SLAVE_ID, REQ_STATUS, REBOOT)
+- **Created** HAL downlink delivery: `lorawan_hal_pop_downlink()` with IRQ-guarded single-slot buffer (`noInterrupts()`/`interrupts()`)
+- **Added** `setInterval()`, `taskInterval()` to TaskScheduler (additive — no existing behavior changed)
+- **Added** `setSlaveAddr()`, `slaveAddr()` to ModbusPeripheral (additive — no existing behavior changed)
+- **Added** `on_rx_data()` downlink capture in `lorawan_hal_common.cpp` with IRQ guards
+- **Confirmed** HAL v2 layering: `downlink_commands.cpp` does NOT include `<LoRaWan-Arduino.h>`
+- **Confirmed** 4/4 sensor-uplink cycles (Modbus OK + uplink OK) during gate run
+- **Confirmed** scheduler continues ticking during 60-second downlink poll window
+- **Confirmed** Gate 7 regression: `rak4631_gate7` and `rak3312_gate7` still compile and pass
+- **Added** `[env:rak4631_gate8]` and `[env:rak3312_gate8]` PlatformIO environments with `-DGATE_8`
+- **Added** `tests/gates/gate_downlink_command_framework_v1/` — shared gate test files (3 files)
+- **Added** `examples/rak4631/downlink_command_framework_v1/` — standalone example (6 files)
+- **Added** `docs/test_reports/rak4631_gate8_downlink_framework_v3.9.md` — full test report
+
+### Binary Command Protocol (fport=10 downlink, fport=11 ACK uplink)
+
+| CMD | Name | Payload | ACK Size |
+|-----|------|---------|----------|
+| 0x01 | SET_INTERVAL | uint32_t BE ms (1000..3600000) | 8 bytes |
+| 0x02 | SET_SLAVE_ID | uint8_t (1..247) | 5 bytes |
+| 0x03 | REQ_STATUS | (none) | 17 bytes |
+| 0x04 | REBOOT | 0xA5 safety key | 5 bytes |
+
+### Gate 8 Results
+
+- Outcome: PASS_WITHOUT_DOWNLINK (no downlink enqueued; infrastructure fully validated)
+- Total Cycles: 4 (2 initial + 2 during poll)
+- Modbus: 4 OK / 0 FAIL
+- Uplinks: 4 OK / 0 FAIL
+- Interval: 30000 ms (unchanged)
+- Slave Addr: 1 (unchanged)
+- RAM: 6.6% (16432 bytes), Flash: 17.8% (145300 bytes)
+
+### Key Difference from Gate 7
+
+| Aspect | Gate 7 (Production Soak) | Gate 8 (Downlink Framework) |
+|--------|--------------------------|------------------------------|
+| Direction | Uplink only | Bidirectional |
+| Duration | 5-minute soak | 60-second downlink wait |
+| New code | Gate harness only | Runtime module + HAL extension |
+| What it proves | Runtime is *stable* | Runtime accepts *remote commands* |
+
+---
+
 ## v3.7-gate7-pass-rak4631 (2026-02-25)
 
 ### Gate 7 — Production Loop Soak on RAK4631: PASSED

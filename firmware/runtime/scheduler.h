@@ -56,6 +56,12 @@ public:
     /** Force-fire a specific task immediately (for gate testing) */
     void fireNow(uint8_t index);
 
+    /** Change interval of a registered task. Returns true if index valid. */
+    bool setInterval(uint8_t index, uint32_t new_interval_ms);
+
+    /** Get current interval of a registered task. Returns 0 if index invalid. */
+    uint32_t taskInterval(uint8_t index) const;
+
 private:
     SchedulerTask m_tasks[SCHEDULER_MAX_TASKS];
     uint8_t m_count;
