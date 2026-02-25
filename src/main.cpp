@@ -12,7 +12,9 @@
 
 #include <Arduino.h>
 
-#ifdef GATE_8
+#ifdef GATE_9
+extern void gate_persistence_reboot_v1_run(void);
+#elif defined(GATE_8)
 extern void gate_downlink_command_framework_v1_run(void);
 #elif defined(CORE_RAK4631)
 extern void gate_rak4631_production_loop_soak_run(void);
@@ -33,14 +35,18 @@ void setup() {
 #else
     Serial.println("[SYSTEM] Core: RAK3312 (ESP32-S3)");
 #endif
-#ifdef GATE_8
+#ifdef GATE_9
+    Serial.println("[SYSTEM] Gate: 9 - Persistence Reboot Test");
+#elif defined(GATE_8)
     Serial.println("[SYSTEM] Gate: 8 - Downlink Command Framework v1");
 #else
     Serial.println("[SYSTEM] Gate: 7 - Production Loop Soak");
 #endif
     Serial.println("========================================");
 
-#ifdef GATE_8
+#ifdef GATE_9
+    gate_persistence_reboot_v1_run();
+#elif defined(GATE_8)
     gate_downlink_command_framework_v1_run();
 #elif defined(CORE_RAK4631)
     gate_rak4631_production_loop_soak_run();

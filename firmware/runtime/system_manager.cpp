@@ -14,6 +14,10 @@
 #include "system_manager.h"
 #include "gate_config.h"
 
+#ifdef HAS_STORAGE_HAL
+#include "storage_hal.h"
+#endif
+
 /* ============================================================
  * Static Singleton
  * ============================================================ */
@@ -95,6 +99,28 @@ bool SystemManager::init(uint32_t join_timeout_ms) {
     if (idx < 0) {
         return false;
     }
+
+#ifdef HAS_STORAGE_HAL
+    /* Load persisted values (if any) */
+    storage_hal_init();
+
+    uint32_t saved_interval;
+    if (storage_hal_read_u32(STORAGE_KEY_INTERVAL, &saved_interval)) {
+        if (saved_interval >= 1000 && saved_interval <= 3600000) {
+            m_scheduler.setInterval(idx, saved_interval);
+            Serial.printf("[STORAGE] Loaded interval: %lu ms\r\n",
+                          (unsigned long)saved_interval);
+        }
+    }
+
+    uint8_t saved_slave;
+    if (storage_hal_read_u8(STORAGE_KEY_SLAVE_ADDR, &saved_slave)) {
+        if (saved_slave >= 1 && saved_slave <= 247) {
+            m_peripheral.setSlaveAddr(saved_slave);
+            Serial.printf("[STORAGE] Loaded slave addr: %d\r\n", saved_slave);
+        }
+    }
+#endif
 
     return true;
 }

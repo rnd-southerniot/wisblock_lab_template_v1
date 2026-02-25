@@ -19,6 +19,10 @@
 #include "downlink_commands.h"
 #include "system_manager.h"
 
+#ifdef HAS_STORAGE_HAL
+#include "storage_hal.h"
+#endif
+
 /* ============================================================
  * Helper: Build ACK header (MAGIC + VERSION + CMD + STATUS)
  * ============================================================ */
@@ -120,6 +124,10 @@ bool dl_parse_and_apply(const uint8_t* buf, uint8_t len, uint8_t fport,
             return true;
         }
 
+#ifdef HAS_STORAGE_HAL
+        storage_hal_write_u32(STORAGE_KEY_INTERVAL, new_interval);
+#endif
+
         /* ACK with current value */
         result.valid = true;
         result.needs_ack = true;
@@ -156,6 +164,10 @@ bool dl_parse_and_apply(const uint8_t* buf, uint8_t len, uint8_t fport,
 
         /* Apply */
         sys.peripheral().setSlaveAddr(new_addr);
+
+#ifdef HAS_STORAGE_HAL
+        storage_hal_write_u8(STORAGE_KEY_SLAVE_ADDR, new_addr);
+#endif
 
         /* ACK with current value */
         result.valid = true;
