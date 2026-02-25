@@ -73,3 +73,11 @@ void Scheduler::fireNow(uint8_t index) {
     m_tasks[index].last_run_ms = millis();
     m_tasks[index].callback();
 }
+
+bool Scheduler::setTaskInterval(uint8_t index, uint32_t interval_ms) {
+    if (index >= m_count || !m_tasks[index].active) {
+        return false;
+    }
+    m_tasks[index].interval_ms = interval_ms;
+    return true;
+}

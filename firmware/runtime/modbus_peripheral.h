@@ -52,6 +52,13 @@ public:
     /** Get number of registers from last successful read */
     uint8_t lastRegCount() const;
 
+    /**
+     * Change Modbus slave address at runtime (downlink command).
+     * @param addr  New slave address (1-247)
+     * @return true if valid address and updated
+     */
+    bool setSlaveAddr(uint8_t addr);
+
 private:
     ModbusPeripheralConfig m_cfg;
     bool     m_initialized;
