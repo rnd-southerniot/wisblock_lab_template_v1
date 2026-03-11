@@ -1,3 +1,24 @@
+## Gate 10 Recovery Note (2026-03-12)
+
+### Gate 10 — Secure Downlink Protocol v2: source restored, build verified
+
+- **Restored** Gate 10 source into the repository: `tests/gates/gate_secure_downlink_v2/`, `firmware/runtime/downlink_security.*`, `firmware/runtime/crypto_sha256.*`
+- **Added** Gate 10 dispatcher path in `src/main.cpp`
+- **Added** `[env:rak4631_gate10]` and `[env:rak3312_gate10]` in `platformio.ini`
+- **Verified** compile success for both targets:
+  - `pio run -e rak4631_gate10`
+  - `pio run -e rak3312_gate10`
+- **Recorded** recovered conversational evidence that Gate 10 may have been hardware-validated on RAK3312
+- **Did not confirm** a formal Gate 10 PASS from repository history: no local tag, no pass commit, no original Gate 10 test report found
+- **Added** `docs/test_reports/gate10_recovered_evidence_v4.1.md` to document the current evidence boundary
+
+### Current Gate 10 Evidence Boundary
+
+- Proven now: source restored, integrated, compile-verified
+- Not yet proven in-repo: official PASS milestone with hardware evidence
+
+---
+
 ## v3.9-gate8-pass-rak4631 (2026-02-25)
 
 ### Gate 8 — Downlink Command Framework v1 on RAK4631: PASSED

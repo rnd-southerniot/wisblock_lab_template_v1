@@ -1,8 +1,8 @@
 /**
  * @file main.cpp
  * @brief Gate Entry Point — Multi-Platform
- * @version 4.0
- * @date 2026-02-25
+ * @version 4.1
+ * @date 2026-02-28
  *
  * Selects the correct gate runner based on build flags.
  * Gate selection via -DGATE_N build flags (default: Gate 7).
@@ -12,7 +12,9 @@
 
 #include <Arduino.h>
 
-#ifdef GATE_9
+#ifdef GATE_10
+extern void gate_secure_downlink_v2_run(void);
+#elif defined(GATE_9)
 extern void gate_persistence_reboot_v1_run(void);
 #elif defined(GATE_8)
 extern void gate_downlink_command_framework_v1_run(void);
@@ -35,7 +37,9 @@ void setup() {
 #else
     Serial.println("[SYSTEM] Core: RAK3312 (ESP32-S3)");
 #endif
-#ifdef GATE_9
+#ifdef GATE_10
+    Serial.println("[SYSTEM] Gate: 10 - Secure Downlink Protocol v2");
+#elif defined(GATE_9)
     Serial.println("[SYSTEM] Gate: 9 - Persistence Reboot Test");
 #elif defined(GATE_8)
     Serial.println("[SYSTEM] Gate: 8 - Downlink Command Framework v1");
@@ -44,7 +48,9 @@ void setup() {
 #endif
     Serial.println("========================================");
 
-#ifdef GATE_9
+#ifdef GATE_10
+    gate_secure_downlink_v2_run();
+#elif defined(GATE_9)
     gate_persistence_reboot_v1_run();
 #elif defined(GATE_8)
     gate_downlink_command_framework_v1_run();
