@@ -167,6 +167,38 @@ int8_t SystemManager::registerSensorTask() {
 }
 
 /* ============================================================
+ * Downlink command dispatch methods
+ * ============================================================ */
+bool SystemManager::setUplinkInterval(uint32_t interval_ms) {
+    /* Task 0 is always the sensor_uplink task registered in init() */
+    return m_scheduler.setTaskInterval(0, interval_ms);
+}
+
+bool SystemManager::setSlaveAddr(uint8_t addr) {
+    return m_peripheral.setSlaveAddr(addr);
+}
+
+void SystemManager::requestStatusUplink() {
+    /* Fire sensor_uplink task immediately (index 0) */
+    m_scheduler.fireNow(0);
+}
+
+void SystemManager::requestReboot() {
+    /* Platform-specific soft reset — ESP32: ESP.restart(), nRF52: NVIC_SystemReset() */
+    Serial.printf("[RUNTIME] Reboot requested via downlink command\r\n");
+    Serial.flush();
+    delay(100);
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+    ESP.restart();
+#elif defined(NRF52_SERIES) || defined(ARDUINO_ARCH_NRF52)
+    NVIC_SystemReset();
+#else
+    /* Fallback: infinite loop triggers watchdog */
+    while (1) { ; }
+#endif
+}
+
+/* ============================================================
  * sensorUplinkTask() — Static callback for scheduler
  *
  * 1. Read Modbus registers into SensorFrame (typed data)

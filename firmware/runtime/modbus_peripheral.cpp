@@ -152,4 +152,10 @@ void ModbusPeripheral::setSlaveAddr(uint8_t addr) {
 
 uint8_t ModbusPeripheral::slaveAddr() const {
     return m_cfg.slave_addr;
+bool ModbusPeripheral::setSlaveAddr(uint8_t addr) {
+    if (addr < 1 || addr > 247) {
+        return false;
+    }
+    m_cfg.slave_addr = addr;
+    return true;
 }

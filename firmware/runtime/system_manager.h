@@ -82,6 +82,32 @@ public:
      */
     int8_t registerSensorTask();
 
+    /* ---- Downlink command dispatch methods ---- */
+
+    /**
+     * Set uplink interval at runtime (called by downlink security module).
+     * @param interval_ms  New uplink interval in milliseconds
+     * @return true if scheduler task interval was updated
+     */
+    bool setUplinkInterval(uint32_t interval_ms);
+
+    /**
+     * Set Modbus slave address at runtime (called by downlink security module).
+     * @param addr  New Modbus slave address (1-247)
+     * @return true if address was updated
+     */
+    bool setSlaveAddr(uint8_t addr);
+
+    /**
+     * Request an immediate status uplink (fires sensor task now).
+     */
+    void requestStatusUplink();
+
+    /**
+     * Request a device reboot. Actual restart is platform-specific.
+     */
+    void requestReboot();
+
 private:
     TaskScheduler        m_scheduler;
     LoRaTransport    m_transport;

@@ -55,3 +55,17 @@ private:
     LoRaTransportConfig m_cfg;
     bool m_initialized;
 };
+
+/* ============================================================
+ * LoRaWAN HAL — Downlink buffer pop
+ *
+ * Retrieves the most recent buffered downlink. Non-blocking.
+ * The downlink buffer is filled by LoRaTransport::on_rx_data()
+ * and consumed (cleared) by this function.
+ * Returns 0 if no downlink pending.
+ *
+ * @param buf   Output buffer (caller provides, must be >= 64 bytes)
+ * @param port  Output: downlink port number
+ * @return Number of bytes copied (0 = no downlink pending)
+ * ============================================================ */
+uint8_t lorawan_hal_pop_downlink(uint8_t* buf, uint8_t* port);

@@ -61,6 +61,13 @@ public:
 
     /** Get current interval of a registered task. Returns 0 if index invalid. */
     uint32_t taskInterval(uint8_t index) const;
+    /**
+     * Change the interval of a registered task at runtime.
+     * @param index  Task index (from registerTask return value)
+     * @param interval_ms  New interval in milliseconds
+     * @return true if task index is valid and interval was set
+     */
+    bool setTaskInterval(uint8_t index, uint32_t interval_ms);
 
 private:
     SchedulerTask m_tasks[SCHEDULER_MAX_TASKS];

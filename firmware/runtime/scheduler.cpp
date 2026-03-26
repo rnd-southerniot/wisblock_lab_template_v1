@@ -84,3 +84,10 @@ uint32_t TaskScheduler::taskInterval(uint8_t index) const {
     if (index >= m_count) return 0;
     return m_tasks[index].interval_ms;
 }
+bool Scheduler::setTaskInterval(uint8_t index, uint32_t interval_ms) {
+    if (index >= m_count || !m_tasks[index].active) {
+        return false;
+    }
+    m_tasks[index].interval_ms = interval_ms;
+    return true;
+}
