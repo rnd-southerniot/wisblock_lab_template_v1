@@ -14,6 +14,10 @@
 #include "system_manager.h"
 #include "gate_config.h"
 
+#ifdef HAS_STORAGE_HAL
+#include "storage_hal.h"
+#endif
+
 /* ============================================================
  * Static Singleton
  * ============================================================ */
@@ -25,14 +29,6 @@ SystemManager* SystemManager::s_instance = nullptr;
 SystemManager::SystemManager()
     : m_transport([]() -> LoRaTransportConfig {
         LoRaTransportConfig cfg = {};
-        cfg.pin_nss   = GATE_LORA_PIN_NSS;
-        cfg.pin_sck   = GATE_LORA_PIN_SCK;
-        cfg.pin_mosi  = GATE_LORA_PIN_MOSI;
-        cfg.pin_miso  = GATE_LORA_PIN_MISO;
-        cfg.pin_reset = GATE_LORA_PIN_RESET;
-        cfg.pin_dio1  = GATE_LORA_PIN_DIO1;
-        cfg.pin_busy  = GATE_LORA_PIN_BUSY;
-        cfg.pin_ant_sw = GATE_LORA_PIN_ANT_SW;
 
         uint8_t dev_eui[] = GATE_LORAWAN_DEV_EUI;
         uint8_t app_eui[] = GATE_LORAWAN_APP_EUI;
@@ -104,6 +100,28 @@ bool SystemManager::init(uint32_t join_timeout_ms) {
         return false;
     }
 
+#ifdef HAS_STORAGE_HAL
+    /* Load persisted values (if any) */
+    storage_hal_init();
+
+    uint32_t saved_interval;
+    if (storage_hal_read_u32(STORAGE_KEY_INTERVAL, &saved_interval)) {
+        if (saved_interval >= 1000 && saved_interval <= 3600000) {
+            m_scheduler.setInterval(idx, saved_interval);
+            Serial.printf("[STORAGE] Loaded interval: %lu ms\r\n",
+                          (unsigned long)saved_interval);
+        }
+    }
+
+    uint8_t saved_slave;
+    if (storage_hal_read_u8(STORAGE_KEY_SLAVE_ADDR, &saved_slave)) {
+        if (saved_slave >= 1 && saved_slave <= 247) {
+            m_peripheral.setSlaveAddr(saved_slave);
+            Serial.printf("[STORAGE] Loaded slave addr: %d\r\n", saved_slave);
+        }
+    }
+#endif
+
     return true;
 }
 
@@ -117,7 +135,7 @@ void SystemManager::tick() {
 /* ============================================================
  * Accessors (for gate test inspection)
  * ============================================================ */
-Scheduler& SystemManager::scheduler() {
+TaskScheduler& SystemManager::scheduler() {
     return m_scheduler;
 }
 

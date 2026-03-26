@@ -1,5 +1,21 @@
 # Gate 10 — Secure Downlink Protocol v2: Pass Criteria
 
+**Gate ID:** 10
+**Gate Name:** `gate_secure_downlink_v2`
+**Version:** 2.0
+**Date:** 2026-02-28
+**Hardware:** RAK4631 (nRF52840 + SX1262) on RAK19007 *(primary)*
+             RAK3312 (ESP32-S3 + SX1262) on RAK19007 *(secondary)*
+
+---
+
+## Objective
+
+Validate the Secure Downlink Protocol v2 security module end-to-end:
+HMAC-SHA256 authentication, monotonic nonce replay protection,
+magic/version enforcement, command dispatch, and live OTA downlink.
+
+---
 ## Gate Identity
 - **Name:** `gate_secure_downlink_v2`
 - **ID:** 10
@@ -14,6 +30,7 @@ enforcement, command dispatch, and live over-the-air downlink processing.
 ## Protocol Specification
 
 ### Frame Format
+
 ```
 Offset  Size   Field               Encoding
 ------  ----   -----               --------
@@ -26,6 +43,50 @@ Offset  Size   Field               Encoding
 N-4     4      HMAC Truncated      First 4 bytes of HMAC-SHA256
 ```
 
+- Minimum frame: 12 bytes (no payload)
+- Maximum frame: 60 bytes (48-byte payload)
+
+### HMAC Computation
+
+| Parameter   | Value                                             |
+|-------------|---------------------------------------------------|
+| Algorithm   | HMAC-SHA256 (RFC 2104)                            |
+| Key length  | 32 bytes                                          |
+| Input       | `frame[0 .. len-5]` (all bytes except HMAC field) |
+| Truncation  | First 4 bytes (MSB-first)                         |
+
+### Validation Order
+
+1. Length check
+2. Magic check (fail-fast → version_fail)
+3. Version check (fail-fast → version_fail)
+4. Nonce check — replay protection (fail-fast → replay_fail)
+5. HMAC check — authentication (fail → auth_fail)
+6. Command dispatch
+
+---
+
+## Phase A — Synthetic Frame Validation (9 criteria)
+
+### STEP 1: SystemManager Init
+- `sys.init()` returns true
+- OTAA join completes within 30s timeout
+- Expected: `[GATE10]   PASS: SystemManager init OK`
+
+### STEP 2: Nonce Storage Reset
+- `storage_hal_write_u32("sdl_nonce", 0)` succeeds
+- Read-back returns 0
+- Expected: `[GATE10]   PASS: Nonce storage reset OK`
+
+### STEP 3: Valid Frame Accepted
+Submit `GATE_SDL_TEST_FRAME` (CMD_SET_INTERVAL, nonce=1, interval=10000ms).
+- `result.valid == true`
+- `result.cmd_id == 0x01`
+- `result.auth_fail == false`
+- `result.replay_fail == false`
+- `result.version_fail == false`
+
+### STEP 4: Replay Rejected
 - **Minimum frame:** 12 bytes (no payload)
 - **Maximum frame:** 60 bytes (48-byte payload)
 
@@ -118,12 +179,63 @@ Submit identical frame again (same nonce=1).
 - `result.valid == false`
 - `result.replay_fail == true`
 
+### STEP 5: Bad Magic Rejected
+Submit `GATE_SDL_BAD_MAGIC_FRAME` (magic=0xFF).
 #### STEP 5: Bad Magic Rejected
 Submit frame with magic byte `0xAA` instead of `0xD1`.
 - `result.valid == false`
 - `result.version_fail == true`
 - HMAC check must NOT execute (fail-fast)
 
+### STEP 6: Tampered HMAC Rejected
+Submit `GATE_SDL_BAD_HMAC_FRAME` (zeroed HMAC, valid structure).
+- `result.valid == false`
+- `result.auth_fail == true`
+
+### STEP 7: Nonce Persistence Verified
+- `storage_hal_read_u32("sdl_nonce")` returns 1
+- Only the valid frame in STEP 3 advances the nonce
+- Rejected frames (STEPS 4–6) must not advance the nonce
+
+---
+
+## Phase B — Live Over-the-Air Validation (2 criteria)
+
+### STEP 8: Live Downlink from ChirpStack
+Operator queues a valid SDL v2 frame via ChirpStack device downlink queue.
+Frame must use nonce > 1 (to be greater than stored nonce from Phase A).
+- Downlink received within 120s timeout
+- Frame passes full validation pipeline
+- Command applied to SystemManager
+- Expected: `[GATE10]   PASS: Live downlink validated and applied`
+
+### STEP 9: Live Replay Rejection
+Re-submit the same received live frame (same nonce).
+- `result.valid == false`
+- `result.replay_fail == true`
+- Expected: `[GATE10]   PASS: Live replay correctly rejected`
+
+---
+
+## Fail Codes
+
+| Code | Constant                         | Meaning                              |
+|------|----------------------------------|--------------------------------------|
+| 0    | `GATE_PASS`                      | All 9 steps passed                   |
+| 1    | `GATE_FAIL_INIT`                 | SystemManager::init() failed         |
+| 2    | `GATE_FAIL_VALID_REJECTED`       | Valid frame was incorrectly rejected |
+| 3    | `GATE_FAIL_WRONG_CMD`            | cmd_id does not match expected       |
+| 4    | `GATE_FAIL_REPLAY_ACCEPTED`      | Replay frame was incorrectly accepted |
+| 5    | `GATE_FAIL_REPLAY_FLAG`          | Replay rejected but replay_fail not set |
+| 6    | `GATE_FAIL_BAD_VERSION_ACCEPTED` | Bad magic/version frame was accepted |
+| 7    | `GATE_FAIL_VERSION_FLAG`         | Rejected but version_fail not set    |
+| 8    | `GATE_FAIL_BAD_HMAC_ACCEPTED`    | Tampered HMAC was accepted           |
+| 9    | `GATE_FAIL_AUTH_FLAG`            | HMAC rejected but auth_fail not set  |
+| 10   | `GATE_FAIL_NONCE_PERSIST`        | Nonce not persisted correctly        |
+| 11   | `GATE_FAIL_DL_TIMEOUT`           | No live downlink within 120s         |
+| 12   | `GATE_FAIL_DL_INVALID`           | Live downlink failed validation      |
+| 13   | `GATE_FAIL_DL_REPLAY_ACCEPTED`   | Live downlink replay accepted        |
+| 14   | `GATE_FAIL_SYSTEM_CRASH`         | Runner did not reach GATE COMPLETE   |
 #### STEP 6: Tampered HMAC Rejected
 Submit frame with valid structure but zeroed HMAC.
 - `result.valid == false`

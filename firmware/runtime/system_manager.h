@@ -4,7 +4,7 @@
  * @version 1.0
  * @date 2026-02-24
  *
- * Top-level runtime coordinator. Owns Scheduler, LoRaTransport,
+ * Top-level runtime coordinator. Owns TaskScheduler, LoRaTransport,
  * and ModbusPeripheral. Registers the sensor-uplink task and
  * dispatches scheduler ticks from loop().
  *
@@ -55,7 +55,7 @@ public:
     void tick();
 
     /** Get reference to scheduler (for gate test inspection) */
-    Scheduler& scheduler();
+    TaskScheduler& scheduler();
 
     /** Get reference to transport (for gate test inspection) */
     LoRaTransport& transport();
@@ -109,7 +109,7 @@ public:
     void requestReboot();
 
 private:
-    Scheduler        m_scheduler;
+    TaskScheduler        m_scheduler;
     LoRaTransport    m_transport;
     ModbusPeripheral m_peripheral;
     uint32_t         m_cycle_count;

@@ -1,0 +1,31 @@
+/**
+ * @file pin_map.h
+ * @brief Pin Map — RAK4631 WisBlock Core (nRF52840 + SX1262)
+ *
+ * Defines GPIO assignments for RS485 Modbus autodiscovery.
+ * Based on WisCore_RAK4631_Board variant.h pin definitions.
+ *
+ * Source: Hardware Profile v3.2 (RAK4631)
+ */
+
+#pragma once
+
+/* ---- Serial1 (UART to RAK5802) ---- */
+#define PIN_UART1_TX       16   /* nRF52840 P0.16 — Serial1 TX */
+#define PIN_UART1_RX       15   /* nRF52840 P0.15 — Serial1 RX */
+
+/* ---- RS485 Control (RAK5802) ---- */
+#define PIN_RS485_EN       34   /* nRF52840 P1.02 — WB_IO2, 3V3_S power enable */
+/*
+ * RAK5802 uses TP8485E with hardware auto-direction circuit.
+ * DE/RE is driven from UART TX line automatically.
+ * WB_IO1 (pin 17) is NC — not connected to DE/RE.
+ * No manual GPIO toggling required.
+ */
+
+/* ---- WisBlock IO Pins ---- */
+#define PIN_WB_IO1         17   /* nRF52840 P0.17 — NC on RAK5802 */
+#define PIN_WB_IO2         34   /* nRF52840 P1.02 — 3V3_S power enable */
+
+/* ---- LEDs ---- */
+#define PIN_LED_BLUE       36   /* nRF52840 P1.04 — Blue LED (active HIGH) */

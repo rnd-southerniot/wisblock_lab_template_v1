@@ -11,7 +11,7 @@
 #include <Arduino.h>
 #include "scheduler.h"
 
-Scheduler::Scheduler() : m_count(0) {
+TaskScheduler::TaskScheduler() : m_count(0) {
     for (uint8_t i = 0; i < SCHEDULER_MAX_TASKS; i++) {
         m_tasks[i].callback    = nullptr;
         m_tasks[i].interval_ms = 0;
@@ -21,7 +21,7 @@ Scheduler::Scheduler() : m_count(0) {
     }
 }
 
-int8_t Scheduler::registerTask(scheduler_callback_t callback,
+int8_t TaskScheduler::registerTask(scheduler_callback_t callback,
                                 uint32_t interval_ms,
                                 const char* name) {
     if (m_count >= SCHEDULER_MAX_TASKS || callback == nullptr) {
@@ -39,7 +39,7 @@ int8_t Scheduler::registerTask(scheduler_callback_t callback,
     return (int8_t)idx;
 }
 
-void Scheduler::tick() {
+void TaskScheduler::tick() {
     uint32_t now = millis();
 
     for (uint8_t i = 0; i < m_count; i++) {
@@ -55,18 +55,18 @@ void Scheduler::tick() {
     }
 }
 
-uint8_t Scheduler::taskCount() const {
+uint8_t TaskScheduler::taskCount() const {
     return m_count;
 }
 
-const char* Scheduler::taskName(uint8_t index) const {
+const char* TaskScheduler::taskName(uint8_t index) const {
     if (index >= m_count) {
         return nullptr;
     }
     return m_tasks[index].name;
 }
 
-void Scheduler::fireNow(uint8_t index) {
+void TaskScheduler::fireNow(uint8_t index) {
     if (index >= m_count || !m_tasks[index].active || m_tasks[index].callback == nullptr) {
         return;
     }
@@ -74,6 +74,16 @@ void Scheduler::fireNow(uint8_t index) {
     m_tasks[index].callback();
 }
 
+bool TaskScheduler::setInterval(uint8_t index, uint32_t new_interval_ms) {
+    if (index >= m_count) return false;
+    m_tasks[index].interval_ms = new_interval_ms;
+    return true;
+}
+
+uint32_t TaskScheduler::taskInterval(uint8_t index) const {
+    if (index >= m_count) return 0;
+    return m_tasks[index].interval_ms;
+}
 bool Scheduler::setTaskInterval(uint8_t index, uint32_t interval_ms) {
     if (index >= m_count || !m_tasks[index].active) {
         return false;

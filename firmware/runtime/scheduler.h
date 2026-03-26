@@ -26,9 +26,9 @@ struct SchedulerTask {
     const char* name;
 };
 
-class Scheduler {
+class TaskScheduler {
 public:
-    Scheduler();
+    TaskScheduler();
 
     /**
      * Register a periodic task.
@@ -56,6 +56,11 @@ public:
     /** Force-fire a specific task immediately (for gate testing) */
     void fireNow(uint8_t index);
 
+    /** Change interval of a registered task. Returns true if index valid. */
+    bool setInterval(uint8_t index, uint32_t new_interval_ms);
+
+    /** Get current interval of a registered task. Returns 0 if index invalid. */
+    uint32_t taskInterval(uint8_t index) const;
     /**
      * Change the interval of a registered task at runtime.
      * @param index  Task index (from registerTask return value)
